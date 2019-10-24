@@ -94,5 +94,9 @@ public class CustController {
 		}
 		return resultJson;
 	}
-	
+
+	@GetMapping("hello")
+	public String hello(){
+		return "hello";
+	}
 }
