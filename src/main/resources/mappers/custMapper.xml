@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper SYSTEM "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.xq.dao.CustDao">
+  <sql id="columns">
+  	name,
+  	address,
+  	phone,
+  	id
+  </sql>
+  <select id="queryById" resultType="cust">
+  	select 
+	<include refid="columns"/>
+	 from cust where id = #{id}
+  </select>
+  
+    <select id="queryByIdList" resultType="cust">
+  	select 
+	<include refid="columns"/>
+	 from cust where id in 
+  	<foreach collection="ids" open="(" close=")" separator="," item="i" >
+  		#{i}
+  	</foreach>
+  </select>
+  
+  <select id="queryAll" resultType="cust">
+  	select * from cust
+  	<where>
+  		<choose>
+  		<when test="name != null and name != ''">
+  			and name like "%"#{name}"%"
+  		</when>
+  		<when test="address != null and address != ''">
+  			and address like "%"#{address}"%"
+  		</when>
+  		</choose>
+  	</where>
+  </select>
+  <insert id="insertCust" parameterType="cust" useGeneratedKeys="false" keyProperty="id">
+  	insert into cust values (#{id}, #{name} ,#{address}, #{phone})
+  </insert>
+  
+  <update id="updateCust"  parameterType="cust">
+  	update cust  
+  	<set>
+  		<if test="name!= null and name!=''">
+  		name = #{name},
+  		</if>
+  		<if test="address!=null and address!=''">
+  		address=#{address},
+  		</if>
+  		<if test="phone!=null and phone!=''">
+  		phone=#{phone},
+  		</if>
+  	</set>
+  	where id = #{id}
+  </update>
+  
+  <delete id="deleteById" parameterType="int">
+  	delete from cust where id = #{id}
+  </delete>
+</mapper>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd">
+
+	<context:property-placeholder location="classpath:jdbc.properties"/>
+	
+	<context:component-scan base-package="org.xq.service" />
+
+	<!--1. 配置数据源 -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+		init-method="init" destroy-method="close">
+		<property name="driverClassName" value="${mysql.driver}" />
+		<property name="url" value="${mysql.url}" />
+		<property name="username" value="${mysql.name}" />
+		<property name="password" value="${mysql.pwd}" />
+		<!-- 最大连接数 -->
+		<property name="maxActive" value="20" />
+		<!-- 最小空闲连接数 -->
+		<property name="minIdle" value="3" />
+		<!-- 初始连接数 -->
+		<property name="initialSize" value="3" />
+		<!--最大等等时间 -->
+		<property name="maxWait" value="3000" />
+		<!--配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+
+	</bean>
+	<!--2. 配置创建Mybatis的SqlSession工厂类 -->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 配置数据源 -->
+		<property name="dataSource" ref="dataSource" />
+		<!-- 指定mapper映射文件的路径 -->
+		<property name="mapperLocations" value="classpath:mappers/*.xml" />
+		<!-- Bean对象的别名配置,指定Bean所在路径, 别名默认为第一个字母为小写 -->
+		<property name="typeAliasesPackage" value="org.xq.pojo"></property>
+		<!-- Mybatis核心配置文件 -->
+		<property name="configLocation" value="classpath:mybatis-config.xml" />
+		<!-- 注册插件 -->
+		<property name="plugins">
+			<array>
+				<!-- 设置PageHelper分页插件 -->
+				<bean class="com.github.pagehelper.PageHelper">
+					<property name="properties">
+						<value>
+							dialect=mysql
+							reasonable=true
+						</value>
+					</property>
+				</bean>
+			</array>
+		</property>
+	</bean>
+
+	<!--3. Mapper 接口的动态代理扫描配置 -->
+	<bean id="mapperScan" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 指定Mapper接口类所在的路径 -->
+		<property name="basePackage" value="org.xq.dao"></property>
+	</bean>
+
+
+	<!-- 配置JDBC事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<!-- 注入数据源 -->
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<!-- 启动注解式事务@Transactional 
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+	-->
+	<!-- 配置声明式事务 -->
+	<tx:advice id="myAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<!--配置你的事务属性,  isolation 隔离级别 , propagation 传播行为, rollback-for 回滚异常 Exception-->
+			<tx:method name="add*" isolation="REPEATABLE_READ" timeout="1000" read-only="false" propagation="REQUIRES_NEW" rollback-for="Exception"/>
+			<tx:method name="insert*" isolation="REPEATABLE_READ" propagation="REQUIRES_NEW" rollback-for="Exception"/>
+			<tx:method name="update*" isolation="REPEATABLE_READ" propagation="REQUIRES_NEW" rollback-for="Exception"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- 配置事务的AOP -->
+	<aop:config>
+		<!-- 横切切入点配置 -->
+		<aop:pointcut expression="execution(* org.xq.service.impl.*.*(..))" id="myCut"/>
+		<!-- 配置你的通知引用和切入点引用 -->
+		<aop:advisor advice-ref="myAdvice" pointcut-ref="myCut"/>
+	</aop:config>
+</beans>

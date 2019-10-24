@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper SYSTEM "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.xq.dao.DeptDao">
+<!-- 当前mapper下使用缓存,  type属性指定使用什么缓存类 -->
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+	
+	<!-- 一对多嵌套查询 映射  -->
+	<resultMap type="org.xq.pojo.Dept" id="deptmap" >
+		<result column="did" property="did"/>
+		<result column="dept_name" property="deptName"/>
+		<!-- 一对多映射 fetchType="lazy" 设置延迟加载 -->
+		<collection property="emps" ofType="org.xq.pojo.Emp" column="did" 
+			select="org.xq.dao.EmpDao.queryById"></collection>
+	</resultMap>
+	
+		<!-- 一对多嵌套结果 映射  -->
+	<resultMap type="org.xq.pojo.Dept" id="deptmapForResult" >
+		<result column="did" property="did"/>
+		<result column="dept_name" property="deptName"/>
+		<!--  -->
+		<collection property="emps" ofType="org.xq.pojo.Emp" autoMapping="true" >
+			
+			</collection>
+	</resultMap>
+
+	<!-- 一对多嵌套查询 -->
+	<select id="queryDeptAll" resultMap="deptmap" >
+		select * from dept
+	</select>
+	
+	<!-- 一对多嵌套结果 -->
+	<select id="queryDeptForResult" resultMap="deptmapForResult">
+		select d.*, e.* from dept d, emp e where d.did=e.did
+	</select>
+
+	<select id="queryDeptById" resultType="dept">
+		select * from dept where did=#{did}
+	</select>
+</mapper>

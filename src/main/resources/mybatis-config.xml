@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration SYSTEM "http://mybatis.org/dtd/mybatis-3-config.dtd" >
+<configuration>
+	<settings>
+		<!--设置驼峰命名方式自动映射  xxx_yyy -> xxxYyy  -->
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+		<!--按需延迟加载 
+		<setting name="aggressiveLazyLoading" value="true"/> -->
+		<!--全部延迟加载-->
+		<setting name="lazyLoadingEnabled" value="true"/>  
+		<!-- 启动二级缓存 -->
+		<setting name="cacheEnabled" value="true"/>
+	</settings>
+</configuration>
